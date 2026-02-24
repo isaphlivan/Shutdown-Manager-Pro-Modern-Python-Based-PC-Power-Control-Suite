@@ -21,21 +21,17 @@ let activeSchedule = null;
 let isQuitting = false;
 
 function createTray() {
-    // Create a simple tray icon using nativeImage (red power icon)
-    const iconSize = 16;
-    const canvas = nativeImage.createEmpty();
-
-    // Use a built-in approach - create icon from data URL
-    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-    <circle cx="32" cy="32" r="28" fill="none" stroke="#ef4444" stroke-width="4"/>
-    <path d="M32 8 L32 32" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
-    <path d="M44 16 A20 20 0 1 1 20 16" fill="none" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
-  </svg>`;
+    // Better SVG for the tray icon (standard power symbol)
+    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+        <line x1="12" y1="2" x2="12" y2="11"></line>
+    </svg>`;
 
     const iconDataUrl = `data:image/svg+xml;base64,${Buffer.from(svgIcon).toString('base64')}`;
     const trayIcon = nativeImage.createFromDataURL(iconDataUrl);
 
-    tray = new Tray(trayIcon.resize({ width: 16, height: 16 }));
+    // resize to a smaller size suitable for tray (16x16 or 24x24 depending on DPI)
+    tray = new Tray(trayIcon.resize({ width: 24, height: 24 }));
     tray.setToolTip('Shutdown Manager');
 
     const contextMenu = Menu.buildFromTemplate([
