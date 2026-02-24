@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shutdown Manager - İsa Pehlivan tarafından geliştirilmiştir</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- Custom Title Bar -->
+  <div class="titlebar" id="titlebar">
+    <div class="titlebar-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+        <line x1="12" y1="2" x2="12" y2="12" />
+      </svg>
+      <span>Shutdown Manager - İsa Pehlivan tarafından geliştirilmiştir</span>
+    </div>
+    <div class="titlebar-controls">
+      <button class="tb-btn hide-btn" onclick="shutdownAPI.hide()" title="Sistem tepsisine gizle">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <polyline points="2,4 6,8 10,4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+      </button>
+      <button class="tb-btn minimize" onclick="shutdownAPI.minimize()">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <rect y="5" width="12" height="2" fill="currentColor" />
+        </svg>
+      </button>
+      <button class="tb-btn maximize" onclick="shutdownAPI.maximize()">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <rect x="1" y="1" width="10" height="10" stroke="currentColor" stroke-width="1.5" fill="none" />
+        </svg>
+      </button>
+      <button class="tb-btn close-btn" onclick="shutdownAPI.close()" title="Sistem tepsisine gizle">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" />
+          <line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#grad1)" stroke-width="2">
+            <defs>
+              <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ff4444" />
+                <stop offset="100%" style="stop-color:#ff8800" />
+              </linearGradient>
+            </defs>
+            <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+            <line x1="12" y1="2" x2="12" y2="12" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="nav-items">
+        <button class="nav-btn active" data-panel="quick" title="Hızlı İşlemler">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
+          <span>Hızlı İşlemler</span>
+        </button>
+        <button class="nav-btn" data-panel="timer" title="Zamanlayıcı">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>Zamanlayıcı</span>
+        </button>
+        <button class="nav-btn" data-panel="schedule" title="Planlayıcı">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span>Planlayıcı</span>
+        </button>
+        <button class="nav-btn" data-panel="remote" title="Uzaktan Kapatma">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+            <line x1="8" y1="21" x2="16" y2="21" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+          </svg>
+          <span>Uzaktan</span>
+        </button>
+        <button class="nav-btn" data-panel="telegram" title="Telegram Kontrol">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m22 2-7 20-4-9-9-4Z"/>
+            <path d="M22 2 11 13"/>
+          </svg>
+          <span>Telegram</span>
+        </button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="system-info" id="systemInfo">
+          <div class="info-item">
+            <span class="info-label">Bilgisayar</span>
+            <span class="info-value" id="hostname">—</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Çalışma Süresi</span>
+            <span class="info-value" id="uptime">—</span>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Quick Actions Panel -->
+      <section class="panel active" id="panel-quick">
+        <div class="panel-header">
+          <h1>Hızlı İşlemler</h1>
+          <p>Tek tıkla bilgisayarınızı yönetin</p>
+        </div>
+        <div class="quick-grid">
+          <button class="action-card shutdown-card" id="btnShutdown">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                <line x1="12" y1="2" x2="12" y2="12" />
+              </svg>
+            </div>
+            <h3>Kapat</h3>
+            <p>Bilgisayarı kapat</p>
+          </button>
+          <button class="action-card restart-card" id="btnRestart">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+            </div>
+            <h3>Yeniden Başlat</h3>
+            <p>Bilgisayarı yeniden başlat</p>
+          </button>
+          <button class="action-card sleep-card" id="btnSleep">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            </div>
+            <h3>Uyku Modu</h3>
+            <p>Uyku moduna al</p>
+          </button>
+          <button class="action-card lock-card" id="btnLock">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h3>Kilitle</h3>
+            <p>Ekranı kilitle</p>
+          </button>
+        </div>
+
+        <!-- Active Timer Banner -->
+        <div class="active-banner hidden" id="activeBanner">
+          <div class="banner-pulse"></div>
+          <div class="banner-content">
+            <span class="banner-label">Aktif Zamanlayıcı</span>
+            <span class="banner-time" id="bannerTime">00:00:00</span>
+          </div>
+          <button class="banner-cancel" id="bannerCancel">İptal Et</button>
+        </div>
+      </section>
+
+      <!-- Timer Panel -->
+      <section class="panel" id="panel-timer">
+        <div class="panel-header">
+          <h1>Zamanlayıcı</h1>
+          <p>Geri sayımlı otomatik kapatma</p>
+        </div>
+
+        <div class="timer-container">
+          <div class="timer-display" id="timerDisplay">
+            <div class="timer-ring">
+              <svg viewBox="0 0 200 200">
+                <circle class="timer-bg" cx="100" cy="100" r="90" fill="none" stroke-width="4" />
+                <circle class="timer-progress" id="timerProgress" cx="100" cy="100" r="90" fill="none"
+                  stroke-width="4" />
+              </svg>
+              <div class="timer-text">
+                <span class="timer-digits" id="timerDigits">00:00:00</span>
+                <span class="timer-sub" id="timerSub">Süre seçin</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="timer-presets">
+            <button class="preset-btn" data-minutes="15">15 dk</button>
+            <button class="preset-btn" data-minutes="30">30 dk</button>
+            <button class="preset-btn" data-minutes="45">45 dk</button>
+            <button class="preset-btn" data-minutes="60">1 saat</button>
+            <button class="preset-btn" data-minutes="90">1.5 saat</button>
+            <button class="preset-btn" data-minutes="120">2 saat</button>
+          </div>
+
+          <div class="timer-custom">
+            <div class="custom-input-group">
+              <div class="custom-field">
+                <label>Saat</label>
+                <input type="number" id="customHours" min="0" max="23" value="0">
+              </div>
+              <span class="time-separator">:</span>
+              <div class="custom-field">
+                <label>Dakika</label>
+                <input type="number" id="customMinutes" min="0" max="59" value="0">
+              </div>
+              <span class="time-separator">:</span>
+              <div class="custom-field">
+                <label>Saniye</label>
+                <input type="number" id="customSeconds" min="0" max="59" value="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="timer-actions">
+            <button class="btn btn-primary btn-glow" id="btnStartTimer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              Zamanlayıcıyı Başlat
+            </button>
+            <button class="btn btn-danger hidden" id="btnCancelTimer">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+              İptal Et
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Schedule Panel -->
+      <section class="panel" id="panel-schedule">
+        <div class="panel-header">
+          <h1>Planlayıcı</h1>
+          <p>Belirli bir zamanda kapatma planla</p>
+        </div>
+
+        <div class="schedule-container">
+          <div class="schedule-card">
+            <div class="schedule-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
+              </svg>
+            </div>
+
+            <div class="schedule-inputs">
+              <div class="input-group">
+                <label for="scheduleDate">Tarih</label>
+                <input type="date" id="scheduleDate" class="input-field">
+              </div>
+              <div class="input-group">
+                <label for="scheduleTime">Saat</label>
+                <input type="time" id="scheduleTime" class="input-field">
+              </div>
+            </div>
+
+            <div class="schedule-info hidden" id="scheduleInfo">
+              <div class="info-countdown">
+                <span class="countdown-label">Kalan Süre</span>
+                <span class="countdown-value" id="scheduleCountdown">—</span>
+              </div>
+            </div>
+
+            <div class="schedule-actions">
+              <button class="btn btn-primary btn-glow" id="btnSchedule">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                Kapatmayı Planla
+              </button>
+              <button class="btn btn-danger hidden" id="btnCancelSchedule">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+                Planı İptal Et
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Remote Shutdown Panel -->
+      <section class="panel" id="panel-remote">
+        <div class="panel-header">
+          <h1>Uzaktan Kapatma</h1>
+          <p>Ağdaki başka bilgisayarları yönetin</p>
+        </div>
+
+        <div class="remote-container">
+          <div class="remote-card">
+            <div class="remote-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+            </div>
+
+            <div class="remote-form">
+              <div class="input-group">
+                <label for="remoteIP">IP Adresi</label>
+                <input type="text" id="remoteIP" class="input-field" placeholder="192.168.1.100">
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="remoteUser">Kullanıcı Adı (Opsiyonel)</label>
+                  <input type="text" id="remoteUser" class="input-field" placeholder="Admin">
+                </div>
+                <div class="input-group">
+                  <label for="remotePass">Şifre (Opsiyonel)</label>
+                  <input type="password" id="remotePass" class="input-field" placeholder="••••••••">
+                </div>
+              </div>
+              <div class="input-group">
+                <label>İşlem</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="remoteAction" value="shutdown" checked>
+                    <span class="radio-custom"></span>
+                    Kapat
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="remoteAction" value="restart">
+                    <span class="radio-custom"></span>
+                    Yeniden Başlat
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-glow" id="btnRemote">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+              Komutu Gönder
+            </button>
+
+            <div class="remote-note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <span>Her iki bilgisayarın da aynı ağda olması ve uzak bilgisayarda uzaktan kapatma izninin açık olması
+                gerekir.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Telegram Panel -->
+      <section class="panel" id="panel-telegram">
+        <div class="panel-header">
+          <h1>Telegram Kontrol</h1>
+          <p>Bilgisayarınızı her yerden yönetin</p>
+        </div>
+
+        <div class="telegram-container">
+          <div class="telegram-card">
+            <div class="telegram-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="m22 2-7 20-4-9-9-4Z"/>
+                <path d="M22 2 11 13"/>
+              </svg>
+            </div>
+
+            <div class="telegram-form">
+              <div class="input-group">
+                <label for="tgToken">Bot Token</label>
+                <input type="password" id="tgToken" class="input-field" placeholder="123456789:ABCDE...">
+                <small class="input-hint">BotFather üzerinden aldığınız token.</small>
+              </div>
+              <div class="input-group">
+                <label for="tgChatId">Chat ID (Yetkili ID)</label>
+                <input type="text" id="tgChatId" class="input-field" placeholder="987654321">
+                <small class="input-hint">Sadece bu ID'den gelen komutlar çalışır.</small>
+              </div>
+            </div>
+
+            <div class="telegram-actions">
+              <button class="btn btn-ghost" id="btnTgTest">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+                Bağlantıyı Test Et
+              </button>
+              <button class="btn btn-primary btn-glow" id="btnTgSave">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+                Ayarları Kaydet
+              </button>
+            </div>
+
+            <div class="telegram-guide">
+              <h3>💡 Nasıl Kurulur?</h3>
+              <ol>
+                <li>Telegram'da <b>@BotFather</b>'a gidin ve yeni bir bot oluşturun.</li>
+                <li>Size verilen <b>API Token</b>'ı yukarıya yapıştırın.</li>
+                <li>Chat ID'nizi öğrenmek için <b>@userinfobot</b>'u kullanın.</li>
+                <li>Ayarları kaydedin ve botun tadını çıkarın!</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div class="modal-overlay hidden" id="confirmModal">
+    <div class="modal">
+      <div class="modal-icon" id="modalIcon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+      </div>
+      <h2 id="modalTitle">Emin misiniz?</h2>
+      <p id="modalMessage">Bu işlem geri alınamaz.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modalCancel">İptal</button>
+        <button class="btn btn-danger" id="modalConfirm">Onayla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
