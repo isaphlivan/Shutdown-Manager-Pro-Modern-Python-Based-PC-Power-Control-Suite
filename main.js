@@ -3,6 +3,8 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
+const axios = require('axios');
+const FormData = require('form-data');
 
 // Configuration management
 const CONFIG_PATH = path.join(app.getPath('userData'), 'telegram_config.json');
@@ -389,6 +391,75 @@ async function setupTelegramBot() {
             try { await runCommand('shutdown /a'); } catch (e) { }
             bot.sendMessage(msg.chat.id, '✅ Tüm işlemler iptal edildi.');
             if (mainWindow) mainWindow.webContents.send('cancel-from-remote');
+        });
+
+        // Voice Command Handling
+        bot.on('voice', async (msg) => {
+            if (!isAuthorized(msg)) return;
+            if (!config.openaiKey) {
+                bot.sendMessage(msg.chat.id, '⚠️ Sesli komut için OpenAI API anahtarı ayarlanmamış.');
+                return;
+            }
+
+            try {
+                bot.sendChatAction(msg.chat.id, 'typing');
+                const fileId = msg.voice.file_id;
+                const fileLink = await bot.getFileLink(fileId);
+
+                // Download file
+                const response = await axios({
+                    method: 'get',
+                    url: fileLink,
+                    responseType: 'arraybuffer'
+                });
+
+                const formData = new FormData();
+                formData.append('file', Buffer.from(response.data), {
+                    filename: 'voice.oga',
+                    contentType: 'audio/ogg'
+                });
+                formData.append('model', 'whisper-1');
+                formData.append('language', 'tr');
+
+                const transcribeRes = await axios.post('https://api.openai.com/v1/audio/transcriptions', formData, {
+                    headers: {
+                        ...formData.getHeaders(),
+                        'Authorization': `Bearer ${config.openaiKey}`
+                    }
+                });
+
+                const text = transcribeRes.data.text.toLowerCase().trim();
+                bot.sendMessage(msg.chat.id, `🎙️ *Anlaşılan:* "${text}"`, { parse_mode: 'Markdown' });
+
+                // Command Mapping
+                if (text.includes('kapat')) {
+                    bot.sendMessage(msg.chat.id, '🔌 Kapatılıyor...');
+                    await runCommand('shutdown /s /t 5 /c "Sesli komut ile kapatma."');
+                } else if (text.includes('yeniden') || text.includes('başlat')) {
+                    bot.sendMessage(msg.chat.id, '🔄 Yeniden başlatılıyor...');
+                    await runCommand('shutdown /r /t 5 /c "Sesli komut ile yeniden başlatma."');
+                } else if (text.includes('kilitle')) {
+                    bot.sendMessage(msg.chat.id, '🔒 Kilitleniyor...');
+                    await runCommand('rundll32.exe user32.dll,LockWorkStation');
+                } else if (text.includes('uyku')) {
+                    bot.sendMessage(msg.chat.id, '🌙 Uykuya alınıyor...');
+                    await runCommand('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
+                } else if (text.includes('iptal')) {
+                    if (activeTimer) { clearTimeout(activeTimer); activeTimer = null; }
+                    if (activeSchedule) { clearTimeout(activeSchedule); activeSchedule = null; }
+                    try { await runCommand('shutdown /a'); } catch (e) { }
+                    bot.sendMessage(msg.chat.id, '✅ İptal edildi.');
+                    if (mainWindow) mainWindow.webContents.send('cancel-from-remote');
+                } else if (text.includes('durum') || text.includes('statü')) {
+                    bot.emit('text', { ...msg, text: '/durum' });
+                } else {
+                    bot.sendMessage(msg.chat.id, '❓ Komut anlaşılamadı. Şu kelimeleri kullanabilirsiniz: kapat, yeniden başlat, kilitle, uyku, iptal, durum.');
+                }
+
+            } catch (e) {
+                console.error('Transcription error:', e);
+                bot.sendMessage(msg.chat.id, '❌ Ses işlenirken bir hata oluştu: ' + (e.response?.data?.error?.message || e.message));
+            }
         });
 
     } catch (e) {

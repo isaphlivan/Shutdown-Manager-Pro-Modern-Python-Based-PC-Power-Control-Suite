@@ -401,6 +401,54 @@ document.getElementById('btnRemote').addEventListener('click', async () => {
 });
 
 // ========================================
+// Telegram Settings
+// ========================================
+
+async function loadTelegramConfig() {
+    try {
+        const config = await api.getTelegramConfig();
+        if (config) {
+            document.getElementById('tgToken').value = config.token || '';
+            document.getElementById('tgChatId').value = config.chatId || '';
+            document.getElementById('tgOpenAIKey').value = config.openaiKey || '';
+        }
+    } catch (e) {
+        console.error('Telegram config load error:', e);
+    }
+}
+
+document.getElementById('btnTgSave').addEventListener('click', async () => {
+    const token = document.getElementById('tgToken').value.trim();
+    const chatId = document.getElementById('tgChatId').value.trim();
+    const openaiKey = document.getElementById('tgOpenAIKey').value.trim();
+
+    if (!token || !chatId) {
+        showToast('Token ve Chat ID alanları zorunludur.', 'error');
+        return;
+    }
+
+    const result = await api.saveTelegramConfig({ token, chatId, openaiKey });
+    showToast(result.message, result.success ? 'success' : 'error');
+});
+
+document.getElementById('btnTgTest').addEventListener('click', async () => {
+    const token = document.getElementById('tgToken').value.trim();
+    const chatId = document.getElementById('tgChatId').value.trim();
+    const openaiKey = document.getElementById('tgOpenAIKey').value.trim();
+
+    if (!token || !chatId) {
+        showToast('Test için önce Token ve Chat ID giriniz.', 'error');
+        return;
+    }
+
+    showToast('Bağlantı test ediliyor...', 'info');
+    const result = await api.testTelegramBot({ token, chatId, openaiKey });
+    showToast(result.message, result.success ? 'success' : 'error');
+});
+
+loadTelegramConfig();
+
+// ========================================
 // Add SVG gradient for timer ring
 // ========================================
 

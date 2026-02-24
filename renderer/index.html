@@ -95,8 +95,8 @@
         </button>
         <button class="nav-btn" data-panel="telegram" title="Telegram Kontrol">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m22 2-7 20-4-9-9-4Z"/>
-            <path d="M22 2 11 13"/>
+            <path d="m22 2-7 20-4-9-9-4Z" />
+            <path d="M22 2 11 13" />
           </svg>
           <span>Telegram</span>
         </button>
@@ -385,8 +385,8 @@
           <div class="telegram-card">
             <div class="telegram-icon">
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="m22 2-7 20-4-9-9-4Z"/>
-                <path d="M22 2 11 13"/>
+                <path d="m22 2-7 20-4-9-9-4Z" />
+                <path d="M22 2 11 13" />
               </svg>
             </div>
 
@@ -400,6 +400,11 @@
                 <label for="tgChatId">Chat ID (Yetkili ID)</label>
                 <input type="text" id="tgChatId" class="input-field" placeholder="987654321">
                 <small class="input-hint">Sadece bu ID'den gelen komutlar çalışır.</small>
+              </div>
+              <div class="input-group">
+                <label for="tgOpenAIKey">OpenAI API Key (Sesli Komut İçin)</label>
+                <input type="password" id="tgOpenAIKey" class="input-field" placeholder="sk-...">
+                <small class="input-hint">Sesli komutların metne dönüştürülmesi için gereklidir.</small>
               </div>
             </div>
 
