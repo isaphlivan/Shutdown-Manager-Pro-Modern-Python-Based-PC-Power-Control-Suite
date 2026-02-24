@@ -6,6 +6,10 @@ const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const FormData = require('form-data');
 
+// Disable GPU cache to prevent "Erişim Engellendi" errors if storage is restricted
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+app.commandLine.appendSwitch('disable-gpu-cache');
+
 // Configuration management
 const CONFIG_PATH = path.join(app.getPath('userData'), 'telegram_config.json');
 let bot = null;
@@ -268,10 +272,19 @@ ipcMain.handle('cancel-shutdown', async () => {
 // Remote shutdown
 ipcMain.handle('remote-shutdown', async (event, { ip, username, password, action }) => {
     try {
+        // Sanitize IP to prevent command injection
+        if (!/^[0-9.]+$/.test(ip)) {
+            throw new Error('Geçersiz IP adresi formatı.');
+        }
+
         let flag = action === 'restart' ? '/r' : '/s';
         let cmd = `shutdown ${flag} /m \\\\${ip} /t 5 /c "Shutdown Manager: Uzaktan kapatma"`;
 
         if (username && password) {
+            // Basic check for special characters in username/password that could break the command
+            if (/[&|><]/.test(username) || /[&|><]/.test(password)) {
+                throw new Error('Kullanıcı adı veya şifre geçersiz karakterler içeriyor.');
+            }
             await runCommand(`net use \\\\${ip}\\IPC$ /user:${username} "${password}"`);
         }
 
