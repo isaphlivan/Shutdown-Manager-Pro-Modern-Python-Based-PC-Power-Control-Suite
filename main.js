@@ -5,6 +5,7 @@ const fs = require('fs');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 const FormData = require('form-data');
+const screenshot = require('screenshot-desktop');
 
 // Disable GPU cache to prevent "Erişim Engellendi" errors if storage is restricted
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
@@ -21,16 +22,11 @@ let activeSchedule = null;
 let isQuitting = false;
 
 function createTray() {
-    // Better SVG for the tray icon (standard power symbol)
-    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-        <line x1="12" y1="2" x2="12" y2="11"></line>
-    </svg>`;
+    // High-visibility tray icon: explicitly load PNG for Windows tray support
+    const trayIconPath = path.join(__dirname, 'tray-icon.png');
+    const trayIcon = nativeImage.createFromPath(trayIconPath);
 
-    const iconDataUrl = `data:image/svg+xml;base64,${Buffer.from(svgIcon).toString('base64')}`;
-    const trayIcon = nativeImage.createFromDataURL(iconDataUrl);
-
-    // resize to a smaller size suitable for tray (16x16 or 24x24 depending on DPI)
+    // resize to a size suitable for tray (16x16 or 24x24 depending on DPI)
     tray = new Tray(trayIcon.resize({ width: 24, height: 24 }));
     tray.setToolTip('Shutdown Manager');
 
@@ -102,7 +98,7 @@ function createWindow() {
         minHeight: 650,
         frame: false,
         transparent: false,
-        backgroundColor: '#06060b',
+        backgroundColor: '#f4f2ef',
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -352,7 +348,7 @@ async function setupTelegramBot() {
 
         bot.onText(/\/(start|baslat)/, (msg) => {
             if (!isAuthorized(msg)) return;
-            bot.sendMessage(msg.chat.id, '👋 Shutdown Manager Botuna Hoş Geldiniz!\n\nKomutlar:\n/durum - Sistem Durumu\n/kapat - Kapat\n/yenidenbaslat - Yeniden Başlat\n/kilitle - Kilitle\n/uyku - Uyku\n/iptal - İptal');
+            bot.sendMessage(msg.chat.id, '👋 Shutdown Manager Botuna Hoş Geldiniz!\n\nKomutlar:\n/durum - Sistem Durumu\n/ekran - Ekran Görüntüsü\n/kapat - Kapat\n/yenidenbaslat - Yeniden Başlat\n/kilitle - Kilitle\n/uyku - Uyku\n/iptal - İptal');
         });
 
         bot.onText(/\/(status|durum)/, async (msg) => {
@@ -367,6 +363,19 @@ async function setupTelegramBot() {
             if (activeSchedule) timerInfo = '📅 Planlanmış görev var.';
 
             bot.sendMessage(msg.chat.id, `🖥️ *Sistem Durumu*\n\nAna Bilgisayar: ${os.hostname()}\nPlatform: ${os.platform()}\nUptime: ${h}s ${m}dk\n\nDurum: ${timerInfo}`, { parse_mode: 'Markdown' });
+        });
+
+        bot.onText(/\/(screenshot|ekran|ss)/, async (msg) => {
+            if (!isAuthorized(msg)) return;
+            try {
+                bot.sendChatAction(msg.chat.id, 'upload_photo');
+                const imgBuffer = await screenshot({ format: 'png' });
+                await bot.sendPhoto(msg.chat.id, imgBuffer, { caption: '📸 Anlık Ekran Görüntüsü' });
+            } catch (e) {
+                console.error('Screenshot error:', e);
+                // Send a more detailed error message to help troubleshooting
+                bot.sendMessage(msg.chat.id, `❌ Ekran görüntüsü alınırken hata oluştu.\n\nHata: ${e.message || 'Bilinmiyor'}`);
+            }
         });
 
         bot.onText(/\/(shutdown|kapat)/, async (msg) => {
@@ -459,10 +468,18 @@ async function setupTelegramBot() {
                     try { await runCommand('shutdown /a'); } catch (e) { }
                     bot.sendMessage(msg.chat.id, '✅ İptal edildi.');
                     if (mainWindow) mainWindow.webContents.send('cancel-from-remote');
+                } else if (text.includes('ekran')) {
+                    bot.sendChatAction(msg.chat.id, 'upload_photo');
+                    try {
+                        const imgBuffer = await screenshot({ format: 'png' });
+                        await bot.sendPhoto(msg.chat.id, imgBuffer, { caption: '📸 Anlık Ekran Görüntüsü' });
+                    } catch (e) {
+                        bot.sendMessage(msg.chat.id, `❌ Ekran görüntüsü alınırken hata oluştu.\n\nHata: ${e.message || 'Bilinmiyor'}`);
+                    }
                 } else if (text.includes('durum') || text.includes('statü')) {
                     bot.emit('text', { ...msg, text: '/durum' });
                 } else {
-                    bot.sendMessage(msg.chat.id, '❓ Komut anlaşılamadı. Şu kelimeleri kullanabilirsiniz: kapat, yeniden başlat, kilitle, uyku, iptal, durum.');
+                    bot.sendMessage(msg.chat.id, '❓ Komut anlaşılamadı. Şu kelimeleri kullanabilirsiniz: kapat, yeniden başlat, kilitle, uyku, iptal, durum, ekran.');
                 }
 
             } catch (e) {

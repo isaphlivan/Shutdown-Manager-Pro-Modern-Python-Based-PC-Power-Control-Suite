@@ -12,6 +12,34 @@ let scheduleEndTime = null;
 let totalTimerSeconds = 0;
 
 // ========================================
+// Theme Toggle (Dark Mode)
+// ========================================
+
+function initTheme() {
+    const saved = localStorage.getItem('shutdown-theme');
+    if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+}
+
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('shutdown-theme', 'light');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('shutdown-theme', 'dark');
+    }
+}
+
+initTheme();
+
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+// ========================================
 // Navigation
 // ========================================
 
@@ -368,39 +396,6 @@ function stopScheduleCountdown() {
 }
 
 // ========================================
-// Remote Shutdown
-// ========================================
-
-document.getElementById('btnRemote').addEventListener('click', async () => {
-    const ip = document.getElementById('remoteIP').value.trim();
-    const username = document.getElementById('remoteUser').value.trim();
-    const password = document.getElementById('remotePass').value;
-    const action = document.querySelector('input[name="remoteAction"]:checked').value;
-
-    if (!ip) {
-        showToast('IP adresi giriniz.', 'error');
-        return;
-    }
-
-    // Basic IP validation
-    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipRegex.test(ip)) {
-        showToast('Geçerli bir IP adresi giriniz (örn: 192.168.1.100).', 'error');
-        return;
-    }
-
-    const actionText = action === 'restart' ? 'yeniden başlatılacak' : 'kapatılacak';
-    const confirmed = await showConfirm(
-        'Uzaktan Kapatma',
-        `${ip} adresindeki bilgisayar ${actionText}. Devam etmek istiyor musunuz?`
-    );
-    if (!confirmed) return;
-
-    const result = await api.remoteShutdown({ ip, username, password, action });
-    showToast(result.message, result.success ? 'success' : 'error');
-});
-
-// ========================================
 // Telegram Settings
 // ========================================
 
@@ -488,4 +483,3 @@ if (api.onQuickAction) {
         }
     });
 }
-

@@ -1,69 +1,119 @@
-# Shutdown Manager Pro
+<div align="center">
+  <img src="https://raw.githubusercontent.com/isaphlivan/Shutdown-Manager-Pro-Modern-Python-Based-PC-Power-Control-Suite/main/tray-icon.png" width="120" alt="Shutdown Manager Pro Logo">
+  
+  # ⚡ Shutdown Manager Pro
+  
+  **Bilgisayarınızı Yönetmenin En Şık, En Akıllı ve En Modern Yolu**
+  
+  [![Made with Electron](https://img.shields.io/badge/Made%20with-Electron-47848f?style=for-the-badge&logo=electron)](https://www.electronjs.org/)
+  [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)](http://makeapullrequest.com)
 
-Modern, PC Power Control Suite with Telegram & Voice Integration.
+  *Eğer bu projeyi beğendiyseniz, sağ üstten ⭐ (Star) vermeyi unutmayın! Desteğiniz bizim için çok değerli!*
+</div>
 
-Shutdown Manager Pro is a powerful and elegant application designed to give you full control over your computer's power state, both locally and remotely.
+---
 
-## 🚀 Key Features
+## 🌟 Proje Hakkında
 
-- **Advanced Timer:** Set a countdown to shutdown, restart, or sleep.
-- **Scheduled Power Off:** Schedule actions for a specific date and time.
-- **Modern UI:** Sleek, glassmorphic design with a user-friendly interface.
-- **System Tray Integration:** Run in the background and access quick actions from the tray.
-- **Remote Control (Local Network):** Control other computers on your network.
-- **Telegram Bot Integration:** Control your PC from anywhere in the world using Telegram.
-- **Voice Commands:** Control your PC with voice messages naturally via Telegram.
+**Shutdown Manager Pro**, bilgisayarınızın güç yönetimini zahmetsiz ve son derece esnek bir hale getiren, modern arayüzlü ve tam donanımlı bir yardımcı araçtır. Sadece basit bir kapatma/yeniden başlatma aracı olmanın çok ötesinde, entegre **Telegram Botu**, **Sesli Komut Desteği (OpenAI)** ve **Ağ Üzerinden Uzaktan Kontrol** özellikleriyle power-user'lar (ileri düzey kullanıcılar) için vazgeçilmez bir deneyim sunar.
 
-## 🤖 Telegram Bot Features
+Hem *Light* hem *Dark* tema desteği, göz yormayan modern renk paletleri ve akıcı animasyonlarıyla masaüstünüzde harika bir görünüm sergiler.
 
-The highlight of Shutdown Manager Pro is its seamless integration with Telegram.
+---
 
-### Text Commands:
-- `/start` - Get started and see available commands.
-- `/durum` - View current system status and uptime.
-- `/kapat` - Initiate immediate shutdown (5s delay).
-- `/yenidenbaslat` - Restart the computer.
-- `/kilitle` - Lock the workstation.
-- `/uyku` - Put the computer to sleep.
-- `/iptal` - Cancel any active countdown or schedule.
+## 🔥 Öne Çıkan Özellikler
 
-### 🎙️ Voice Commands
-Control your PC naturally! Simply send a voice message with these keywords:
-- **"Kapat"**: Shutdown the computer.
-- **"Yeniden başlat"**: Restart the computer.
-- **"Kilitle"**: Lock the screen.
-- **"Uyku"**: Sleep mode.
-- **"İptal"**: Stop all active power tasks.
-- **"Durum"**: Get current system status.
+- **📱 Telegram Entegrasyonu & Sesli Komutlar**: Bilgisayarınızı dünyanın herhangi bir yerinden Telegram üzerinden kapatın veya yeniden başlatın. OpenAI Whisper entegrasyonu sayesinde bota *"Bilgisayarı yarım saat sonra kapat"* demeniz bile yeterli!
+- **🎨 Kusursuz UI/UX Deneyimi**: Piksel mükemmelliğinde tasarlanmış arayüz. Tek tıkla çalışabilen animasyonlu sistem tepsisi (tray) ikonu ve akıcı menü geçişleri.
+- **🌗 Dinamik Tema Desteği**: Gözü yormayan şık Light (Açık) ve modern Dark (Koyu) tema modları arasında pürüzsüz geçiş yapın. Ayarlarınız saklanır.
+- **⏱️ Gelişmiş Zamanlayıcı ve Planlayıcı**: İster geri sayım başlatın, ister belirli bir takvim tarihi ve saati verin. Bilgisayarınız komutunuzu tam vaktinde uygulasın.
+- **📸 Anlık Ekran Görüntüsü**: Bilgisayarınızı evde açık mı bıraktınız? Telegram botunuza `/ekran` yazarak anında mevcut ekran görüntüsünü telefonunuza alabilirsiniz.
+- **🛠️ Güçlü "Hızlı İşlemler" Paneli**: Uykuya alma, oturum kilitleme, yeniden başlatma, kapatma işlemleri elinizin altında.
 
-## 🛠️ Setup Instructions
+---
 
-### Prerequisites
-- Node.js & npm
-- Telegram Account
-- OpenAI API Key (Required for Voice Commands)
+## 📸 Ekran Görüntüleri
 
-### Installation
-1. Clone the repository:
+Tasarım felsefemiz sadelik, şıklık ve işlevsellik üzerinedir. 
+*(Projenizi çalıştırdıktan sonra buraya harika ekran görüntülerinizi ekleyebilirsiniz!)*
+
+---
+
+## 🚀 Kurulum & Çalıştırma
+
+Projeyi yerel bilgisayarınızda çalıştırmak veya kendi `.exe` dosyanızı oluşturmak oldukça basittir.
+
+### Ön Gereksinimler
+- [Node.js](https://nodejs.org/en) (v14 veya üzeri)
+- Git
+
+### Adımlar
+
+1. **Projeyi Klonlayın:**
    ```bash
    git clone https://github.com/isaphlivan/Shutdown-Manager-Pro-Modern-Python-Based-PC-Power-Control-Suite.git
+   cd Shutdown-Manager-Pro-Modern-Python-Based-PC-Power-Control-Suite
    ```
-2. Navigate to the project directory and install dependencies:
+
+2. **Bağımlılıkları Yükleyin:**
    ```bash
-   cd shutdown
    npm install
    ```
-3. Start the application:
+
+3. **Uygulamayı Çalıştırın (Geliştirici Modu):**
    ```bash
    npm start
    ```
 
-### Telegram & Voice Setup
-1. Message [@BotFather](https://t.me/botfather) for a **Bot Token**.
-2. Message [@userinfobot](https://t.me/userinfobot) for your **Chat ID**.
-3. (Optional) Get an API Key from [OpenAI](https://platform.openai.com/) for voice recognition.
-4. Open the app, go to the **Telegram** tab, and enter your credentials.
-5. Click **Kaydet**.
+4. **Kendi Executable (.exe) Dosyanızı Üretin:**
+   Tek tıkla kurulum dosyası ve portable sürüm oluşturmak için:
+   ```bash
+   npm run build
+   ```
+   *(Çıkan derlenmiş dosyalar `dist` klasörü altında yer alacaktır.)*
 
-## 📄 License
-MIT License. Developed by İsa Pehlivan.
+---
+
+## 🤖 Telegram Botu & Sesli Komut Kurulumu
+
+Projeyi sadece masaüstünde değil, dışardayken de telefonunuzdan yönetmek için Telegram özelliğini mutlaka aktif edin!
+
+1. Telegram'ı açın ve **@BotFather**'ı bulup `/newbot` komutuyla yeni bir bot oluşturun.
+2. BotFather size bir **API Token** verecek. Bunu uygulamanın *Telegram Kontrol* sekmesine yapıştırın.
+3. Yine Telegram'da **@userinfobot**'u bularak kendi kişisel **Chat ID** numaranızı öğrenin ve uygulamaya girin *(Böylece bot sadece sizden gelen komutları dinler)*.
+4. *(Opsiyonel)* Sesli komutları metne çevirmek için uygulamanın ilgili ayar alanına **OpenAI API Key**'inizi ekleyin ve ayarları kaydedin.
+5. Bot hazır! Telegram üzerinden bota `/durum`, `/kapat`, `/ekran` komutlarını gönderebilir veya doğrudan seskaydı atarak yönetebilirsiniz.
+
+---
+
+## 🤝 Katkıda Bulunma
+
+Geliştirmelere, hata çözümlerine ve yeni fikirlere her zaman açığız! Katkıda bulunmak isterseniz:
+1. Projeyi fork'layın.
+2. Kendinize yeni bir branch oluşturun (`git checkout -b feature/YeniOzellik`).
+3. Değişikliklerinizi commit'leyin (`git commit -m 'Harika bir eklenti yapıldı'`).
+4. Branch'inizi push'layın (`git push origin feature/YeniOzellik`).
+5. Bir Pull Request açın!
+
+---
+
+## 👨‍💻 Geliştirici
+
+**İsa Pehlivan**  
+Tasarım ve modern programlamaya tutkuyla bağlı.
+
+- GitHub: [@isaphlivan](https://github.com/isaphlivan)
+
+---
+
+## 📝 Lisans
+
+Bu proje **MIT Lisansı** ile lisanslanmıştır. Detaylar için `LICENSE` dosyasına göz atabilirsiniz. Özgürce kullanabilir, değiştirebilir ve geliştirebilirsiniz.
+
+---
+
+<div align="center">
+  <b>Emeğimizin karşılığı olarak projeye yukarından küçük bir ⭐ bırakırsanız bizi çok mutlu edersiniz! Teşekkürler!</b>
+</div>
