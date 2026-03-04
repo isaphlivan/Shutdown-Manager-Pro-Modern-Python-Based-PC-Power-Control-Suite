@@ -11,6 +11,31 @@ const screenshot = require('screenshot-desktop');
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-gpu-cache');
 
+const isMac = process.platform === 'darwin';
+
+// Cross-platform OS Commands Wrapper
+const getOsCmd = {
+    shutdown: (seconds = 0, msg = "") => isMac
+        ? `sleep ${seconds} && osascript -e 'tell app "System Events" to shut down'`
+        : `shutdown /s /t ${seconds} /c "${msg}"`,
+
+    restart: (seconds = 0, msg = "") => isMac
+        ? `sleep ${seconds} && osascript -e 'tell app "System Events" to restart'`
+        : `shutdown /r /t ${seconds} /c "${msg}"`,
+
+    sleep: () => isMac
+        ? `pmset sleepnow`
+        : `rundll32.exe powrprof.dll,SetSuspendState 0,1,0`,
+
+    lock: () => isMac
+        ? `pmset displaysleepnow`
+        : `rundll32.exe user32.dll,LockWorkStation`,
+
+    cancel: () => isMac
+        ? `pkill -f "sleep.*&&.*osascript"`
+        : `shutdown /a`
+};
+
 // Configuration management
 const CONFIG_PATH = path.join(app.getPath('userData'), 'telegram_config.json');
 let bot = null;
@@ -57,7 +82,7 @@ function createTray() {
         {
             label: 'Kilitle',
             click: () => {
-                runCommand('rundll32.exe user32.dll,LockWorkStation');
+                runCommand(getOsCmd.lock());
             }
         },
         { type: 'separator' },
@@ -67,7 +92,7 @@ function createTray() {
                 try {
                     if (activeTimer) { clearTimeout(activeTimer); activeTimer = null; }
                     if (activeSchedule) { clearTimeout(activeSchedule); activeSchedule = null; }
-                    await runCommand('shutdown /a');
+                    await runCommand(getOsCmd.cancel());
                 } catch (e) { }
             }
         },
@@ -151,7 +176,7 @@ function runCommand(cmd) {
     return new Promise((resolve, reject) => {
         exec(cmd, { encoding: 'utf-8' }, (error, stdout, stderr) => {
             if (error) {
-                if (cmd.includes('/a') && error.code === 1116) {
+                if ((cmd.includes("/a") || cmd.includes("pkill")) && error.code === 1116) {
                     resolve({ success: true, message: 'Zamanlanmış kapatma bulunamadı.' });
                     return;
                 }
@@ -166,7 +191,7 @@ function runCommand(cmd) {
 // Immediate shutdown
 ipcMain.handle('shutdown', async () => {
     try {
-        await runCommand('shutdown /s /t 5 /c "Shutdown Manager: Bilgisayar kapatılıyor..."');
+        await runCommand(getOsCmd.shutdown(5, "Shutdown Manager: Bilgisayar kapatılıyor..."));
         return { success: true, message: 'Bilgisayar 5 saniye içinde kapanacak.' };
     } catch (e) {
         return e;
@@ -176,7 +201,7 @@ ipcMain.handle('shutdown', async () => {
 // Immediate restart
 ipcMain.handle('restart', async () => {
     try {
-        await runCommand('shutdown /r /t 5 /c "Shutdown Manager: Bilgisayar yeniden başlatılıyor..."');
+        await runCommand(getOsCmd.restart(5, "Shutdown Manager: Bilgisayar yeniden başlatılıyor..."));
         return { success: true, message: 'Bilgisayar 5 saniye içinde yeniden başlayacak.' };
     } catch (e) {
         return e;
@@ -186,7 +211,7 @@ ipcMain.handle('restart', async () => {
 // Sleep / Hibernate
 ipcMain.handle('sleep', async () => {
     try {
-        await runCommand('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
+        await runCommand(getOsCmd.sleep());
         return { success: true, message: 'Bilgisayar uyku moduna alınıyor.' };
     } catch (e) {
         return e;
@@ -196,7 +221,7 @@ ipcMain.handle('sleep', async () => {
 // Lock screen
 ipcMain.handle('lock', async () => {
     try {
-        await runCommand('rundll32.exe user32.dll,LockWorkStation');
+        await runCommand(getOsCmd.lock());
         return { success: true, message: 'Ekran kilitleniyor.' };
     } catch (e) {
         return e;
@@ -208,10 +233,10 @@ ipcMain.handle('timer-shutdown', async (event, seconds) => {
     try {
         if (activeTimer) {
             clearTimeout(activeTimer);
-            try { await runCommand('shutdown /a'); } catch (e) { }
+            try { await runCommand(getOsCmd.cancel()); } catch (e) { }
         }
 
-        await runCommand(`shutdown /s /t ${seconds} /c "Shutdown Manager: Zamanlayıcı ile kapatma"`);
+        await runCommand(getOsCmd.shutdown(seconds, "Shutdown Manager: Zamanlayıcı ile kapatma"));
 
         const endTime = Date.now() + (seconds * 1000);
         activeTimer = setTimeout(() => { activeTimer = null; }, seconds * 1000);
@@ -236,10 +261,10 @@ ipcMain.handle('schedule-shutdown', async (event, targetTimestamp) => {
 
         if (activeSchedule) {
             clearTimeout(activeSchedule);
-            try { await runCommand('shutdown /a'); } catch (e) { }
+            try { await runCommand(getOsCmd.cancel()); } catch (e) { }
         }
 
-        await runCommand(`shutdown /s /t ${diffSeconds} /c "Shutdown Manager: Planlanmış kapatma"`);
+        await runCommand(getOsCmd.shutdown(diffSeconds, "Shutdown Manager: Planlanmış kapatma"));
 
         activeSchedule = setTimeout(() => { activeSchedule = null; }, diffMs);
 
@@ -254,7 +279,7 @@ ipcMain.handle('cancel-shutdown', async () => {
     try {
         if (activeTimer) { clearTimeout(activeTimer); activeTimer = null; }
         if (activeSchedule) { clearTimeout(activeSchedule); activeSchedule = null; }
-        await runCommand('shutdown /a');
+        await runCommand(getOsCmd.cancel());
         return { success: true, message: 'Zamanlanmış kapatma iptal edildi.' };
     } catch (e) {
         return { success: false, message: 'İptal edilecek aktif bir zamanlayıcı bulunamadı.' };
@@ -381,32 +406,32 @@ async function setupTelegramBot() {
         bot.onText(/\/(shutdown|kapat)/, async (msg) => {
             if (!isAuthorized(msg)) return;
             bot.sendMessage(msg.chat.id, '🔌 Bilgisayar 5 saniye içinde kapatılıyor...');
-            await runCommand('shutdown /s /t 5 /c "Telegram üzerinden kapatma komutu alındı."');
+            await runCommand(getOsCmd.shutdown(5, "Telegram üzerinden kapatma komutu alındı."));
         });
 
         bot.onText(/\/(restart|yenidenbaslat)/, async (msg) => {
             if (!isAuthorized(msg)) return;
             bot.sendMessage(msg.chat.id, '🔄 Bilgisayar yeniden başlatılıyor...');
-            await runCommand('shutdown /r /t 5 /c "Telegram üzerinden yeniden başlatma komutu alındı."');
+            await runCommand(getOsCmd.restart(5, "Telegram üzerinden yeniden başlatma komutu alındı."));
         });
 
         bot.onText(/\/(lock|kilitle)/, async (msg) => {
             if (!isAuthorized(msg)) return;
             bot.sendMessage(msg.chat.id, '🔒 Ekran kilitlendi.');
-            await runCommand('rundll32.exe user32.dll,LockWorkStation');
+            await runCommand(getOsCmd.lock());
         });
 
         bot.onText(/\/(sleep|uyku)/, async (msg) => {
             if (!isAuthorized(msg)) return;
             bot.sendMessage(msg.chat.id, '🌙 Bilgisayar uyku moduna alınıyor.');
-            await runCommand('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
+            await runCommand(getOsCmd.sleep());
         });
 
         bot.onText(/\/(cancel|iptal)/, async (msg) => {
             if (!isAuthorized(msg)) return;
             if (activeTimer) { clearTimeout(activeTimer); activeTimer = null; }
             if (activeSchedule) { clearTimeout(activeSchedule); activeSchedule = null; }
-            try { await runCommand('shutdown /a'); } catch (e) { }
+            try { await runCommand(getOsCmd.cancel()); } catch (e) { }
             bot.sendMessage(msg.chat.id, '✅ Tüm işlemler iptal edildi.');
             if (mainWindow) mainWindow.webContents.send('cancel-from-remote');
         });
@@ -452,20 +477,20 @@ async function setupTelegramBot() {
                 // Command Mapping
                 if (text.includes('kapat')) {
                     bot.sendMessage(msg.chat.id, '🔌 Kapatılıyor...');
-                    await runCommand('shutdown /s /t 5 /c "Sesli komut ile kapatma."');
+                    await runCommand(getOsCmd.shutdown(5, "Sesli komut ile kapatma."));
                 } else if (text.includes('yeniden') || text.includes('başlat')) {
                     bot.sendMessage(msg.chat.id, '🔄 Yeniden başlatılıyor...');
-                    await runCommand('shutdown /r /t 5 /c "Sesli komut ile yeniden başlatma."');
+                    await runCommand(getOsCmd.restart(5, "Sesli komut ile yeniden başlatma."));
                 } else if (text.includes('kilitle')) {
                     bot.sendMessage(msg.chat.id, '🔒 Kilitleniyor...');
-                    await runCommand('rundll32.exe user32.dll,LockWorkStation');
+                    await runCommand(getOsCmd.lock());
                 } else if (text.includes('uyku')) {
                     bot.sendMessage(msg.chat.id, '🌙 Uykuya alınıyor...');
-                    await runCommand('rundll32.exe powrprof.dll,SetSuspendState 0,1,0');
+                    await runCommand(getOsCmd.sleep());
                 } else if (text.includes('iptal')) {
                     if (activeTimer) { clearTimeout(activeTimer); activeTimer = null; }
                     if (activeSchedule) { clearTimeout(activeSchedule); activeSchedule = null; }
-                    try { await runCommand('shutdown /a'); } catch (e) { }
+                    try { await runCommand(getOsCmd.cancel()); } catch (e) { }
                     bot.sendMessage(msg.chat.id, '✅ İptal edildi.');
                     if (mainWindow) mainWindow.webContents.send('cancel-from-remote');
                 } else if (text.includes('ekran')) {

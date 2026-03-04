@@ -48,6 +48,7 @@ Projeyi yerel bilgisayarınızda çalıştırmak veya kendi `.exe` dosyanızı o
 ### Ön Gereksinimler
 - [Node.js](https://nodejs.org/en) (v14 veya üzeri)
 - Git
+- Windows (10/11) veya macOS (High Sierra ve üzeri) işletim sistemi
 
 ### Adımlar
 
@@ -67,10 +68,14 @@ Projeyi yerel bilgisayarınızda çalıştırmak veya kendi `.exe` dosyanızı o
    npm start
    ```
 
-4. **Kendi Executable (.exe) Dosyanızı Üretin:**
-   Tek tıkla kurulum dosyası ve portable sürüm oluşturmak için:
+4. **Kendi Dosyanızı Üretin:**
+   Tek tıkla **Windows** için kurulum dosyası (ve portable sürüm) üretmek için:
    ```bash
    npm run build
+   ```
+   **macOS** (DMG/Zip) uygulamasını oluşturmak için (sadece bir Mac cihazında derleyebilirsiniz):
+   ```bash
+   npm run build:mac
    ```
    *(Çıkan derlenmiş dosyalar `dist` klasörü altında yer alacaktır.)*
 
